@@ -1,0 +1,152 @@
+#include <Servo.h>
+#include <LiquidCrystal_I2C.h>
+
+// #define IR_SENSOR A1  // IR Sensor at 12 o'clock
+
+// Ultrasonic Sensors
+#define Trig_Pin1 11  // Left sensor (10 o'clock)
+#define Echo_Pin1 10
+#define Trig_Pin2 8   // Right sensor (2 o'clock)
+#define Echo_Pin2 7
+
+// Motor Driver Pins
+#define L_motor_fw_pin 5
+#define L_motor_bw_pin 3
+#define R_motor_fw_pin 6
+#define R_motor_bw_pin 9
+
+
+Servo clawServo;  // Servo for claw
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+
+const int CLAW_OPEN_ANGLE = 60;
+const int CLAW_CLOSE_ANGLE = 20;
+
+// Function to get distance from ultrasonic sensor
+int getDistance(int trigPin, int echoPin) {
+    digitalWrite(trigPin, LOW);
+    delayMicroseconds(2);
+    digitalWrite(trigPin, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(trigPin, LOW);
+    long duration = pulseIn(echoPin, HIGH);
+    return duration / 58;  // Convert to cm
+}
+
+// Function to move forward
+void fw_Max_V() {
+    analogWrite(L_motor_fw_pin, 104);
+    analogWrite(R_motor_fw_pin, 120);
+    digitalWrite(L_motor_bw_pin, LOW);
+    digitalWrite(R_motor_bw_pin, LOW);
+}
+
+// Function to move backward
+void bw_Max_V(int delay_time) {
+    digitalWrite(L_motor_fw_pin, LOW);
+    digitalWrite(R_motor_fw_pin, LOW);
+    digitalWrite(L_motor_bw_pin, HIGH);
+    digitalWrite(R_motor_bw_pin, HIGH);
+    delay(delay_time);
+}
+
+// Function to stop
+void stopBot(int delay_time) {
+    digitalWrite(L_motor_fw_pin, LOW);
+    digitalWrite(R_motor_fw_pin, LOW);
+    digitalWrite(L_motor_bw_pin, LOW);
+    digitalWrite(R_motor_bw_pin, LOW);
+    delay(delay_time);
+}
+
+// Function to turn left
+void turn_L(int delay_time) {
+    digitalWrite(L_motor_fw_pin, LOW);
+    analogWrite(R_motor_fw_pin, 160);
+    analogWrite(L_motor_bw_pin, 120);
+    digitalWrite(R_motor_bw_pin, LOW);
+    delay(delay_time);
+}
+
+// Function to turn right
+void turn_R(int delay_time) {
+    analogWrite(L_motor_fw_pin, 160);
+    digitalWrite(R_motor_fw_pin, LOW);
+    digitalWrite(L_motor_bw_pin, LOW);
+    analogWrite(R_motor_bw_pin, 120);
+    delay(delay_time);
+}
+
+int distance1 = 0; // Global variables to store distances
+int distance2 = 0;
+
+void LCDDISPLAY() {
+    distance1 = getDistance(Trig_Pin1, Echo_Pin1);  // Left sensor
+    distance2 = getDistance(Trig_Pin2, Echo_Pin2);  // Right sensor
+
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Right: ");
+    lcd.print(distance2); // Corrected to display distance2
+    lcd.print(" cm");
+
+    lcd.setCursor(0, 1);
+    lcd.print("Left: ");
+    lcd.print(distance1); // Corrected to display distance1
+    lcd.print(" cm");
+}
+
+
+void setup() {
+    Serial.begin(9600);
+    clawServo.attach(A1); // Servo for claw
+
+   // pinMode(IR_SENSOR, INPUT);
+
+    pinMode(Trig_Pin1, OUTPUT);
+    pinMode(Echo_Pin1, INPUT);
+    pinMode(Trig_Pin2, OUTPUT);
+    pinMode(Echo_Pin2, INPUT);
+
+    pinMode(L_motor_fw_pin, OUTPUT);
+    pinMode(R_motor_fw_pin, OUTPUT);
+    pinMode(L_motor_bw_pin, OUTPUT);
+    pinMode(R_motor_bw_pin, OUTPUT);
+
+    lcd.init(); // Initialize LCD
+    lcd.backlight();
+    clawServo.write(CLAW_OPEN_ANGLE);  // Claw open position at start using CLAW_OPEN_ANGLE constant
+    delay(200); //Give the servo time to move
+}
+
+void servomovement() {
+  clawServo.write(CLAW_OPEN_ANGLE);
+  delay(100);
+  clawServo.write(CLAW_CLOSE_ANGLE);
+}
+
+void loop() {
+    // int irSensorValue = digitalRead(IR_SENSOR);
+    LCDDISPLAY();
+
+
+    if (distance1 < 30 && distance2 < 30) {  // Both side sensors detect obstacles
+        bw_Max_V(500);
+        turn_L(500);
+        fw_Max_V();
+    } else if (distance1 < 30 && distance1 != 0) {  // Left sensor detects obstacle
+        bw_Max_V(200);
+        turn_R(300);
+        fw_Max_V();
+    } else if (distance2 < 30 && distance2 != 0) {  // Right sensor detects obstacle
+        bw_Max_V(200);
+        turn_L(300);
+        fw_Max_V();
+    } else {  // No obstacles
+        fw_Max_V();
+    }
+
+    servomovement();  
+    delay(200);  
+}
