@@ -1,4 +1,5 @@
-# Arduino-2wd-Robot-Car-Wifi-module-x-movable-claw-#define BLYNK_TEMPLATE_ID "TMPL6nkexvefV"
+
+#define BLYNK_TEMPLATE_ID "TMPL6nkexvefV"
 #define BLYNK_TEMPLATE_NAME "IED Bot"
 #define BLYNK_AUTH_TOKEN "bXV9ZG1ex4LrX1U2p3bVJ2Go-fmFSfAF"
 
