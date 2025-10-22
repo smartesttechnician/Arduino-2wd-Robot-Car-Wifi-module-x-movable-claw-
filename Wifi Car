@@ -1,7 +1,7 @@
 
-#define BLYNK_TEMPLATE_ID "TMPL6nkexvefV"
-#define BLYNK_TEMPLATE_NAME "IED Bot"
-#define BLYNK_AUTH_TOKEN "bXV9ZG1ex4LrX1U2p3bVJ2Go-fmFSfAF"
+#define BLYNK_TEMPLATE_ID "xx"
+#define BLYNK_TEMPLATE_NAME "xx"
+#define BLYNK_AUTH_TOKEN "xx"
 
 #define BLYNK_PRINT Serial
 #include <ESP8266_Lib.h>
